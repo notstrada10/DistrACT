@@ -1,4 +1,5 @@
 import cv2
+import yaml
 
 from alert import AlertManager
 from detector import PhoneDetector
@@ -6,14 +7,15 @@ from tracker import DistractionTracker
 
 
 def main():
-    detector = PhoneDetector()
-    tracker = DistractionTracker(threshold_seconds=3)
-    alert = AlertManager(cooldown_seconds=5)
+    with open("config.yaml") as f:
+        config = yaml.safe_load(f)
+
+    detector = PhoneDetector(config["detection"])
+    tracker = DistractionTracker(config["tracker"])
+    alert = AlertManager(config["alert"])
     cap = cv2.VideoCapture(0)
 
-    frame_count = 0
-    last_boxes = []
-    phone_detected = False
+    detector.start()
 
     try:
         while True:
@@ -21,12 +23,9 @@ def main():
             if not ret:
                 break
 
-            frame_count += 1
-
-            if frame_count % 30 == 0:
-                boxes, scores = detector.detect(frame)
-                last_boxes = boxes
-                phone_detected = len(boxes) > 0
+            detector.update_frame(frame)
+            boxes, scores = detector.get_results()
+            phone_detected = len(boxes) > 0
 
             distracted = tracker.update(phone_detected)
 
@@ -35,7 +34,7 @@ def main():
             else:
                 alert.dismiss()
 
-            for box in last_boxes:
+            for box in boxes:
                 x1, y1, x2, y2 = box.int().tolist()
                 cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 3)
 
@@ -43,6 +42,7 @@ def main():
             if cv2.waitKey(1) & 0xFF == ord("q"):
                 break
     finally:
+        detector.stop()
         cap.release()
         cv2.destroyAllWindows()
 

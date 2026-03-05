@@ -2,8 +2,8 @@ import time
 
 
 class DistractionTracker:
-    def __init__(self, threshold_seconds=3):
-        self.threshold = threshold_seconds
+    def __init__(self, config):
+        self.threshold = config["threshold_seconds"]
         self.start_time = None
 
     def update(self, phone_detected):
