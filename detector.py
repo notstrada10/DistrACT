@@ -7,7 +7,7 @@ from torchvision.models.detection import (
 from torchvision.transforms.functional import to_tensor
 
 PHONE_CLASS = 77
-CONFIDENCE_THRESHOLD = 0.7
+CONFIDENCE_THRESHOLD = 0.6
 
 
 class PhoneDetector:
@@ -17,6 +17,7 @@ class PhoneDetector:
         self.device = torch.device("cpu")
         self.model = fasterrcnn_mobilenet_v3_large_fpn(weights=weights).to(self.device)
         self.model.eval()
+        print("Using device:", self.device)
 
     def detect(self, frame):
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -31,7 +32,5 @@ class PhoneDetector:
 
         boxes = pred["boxes"][mask]
         scores = pred["scores"][mask]
-
-        print("Using device:", self.device)
 
         return boxes, scores
