@@ -39,7 +39,6 @@ class DistrACTApp(rumps.App):
 
             distracted = self.tracker.update(phone_detected)
 
-
             if distracted:
                 now = time.time()
                 if now - last_alert_time >= self.alert_config["cooldown_seconds"]:
